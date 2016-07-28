@@ -1,5 +1,6 @@
 (ns text-analysis.views
-    (:require [re-frame.core :as re-frame]))
+    (:require [re-frame.core :as re-frame]
+              [clojure.string :refer [join]]))
 
 
 (defn navigation []
@@ -29,7 +30,12 @@
 ;; results
 
 (defn result-view [r]
-  ^{:key r}[:p (first r) " - " (second r)])
+  (let [word (first r)
+        data (second r)
+        count (:count data)
+        forms (:forms data)
+        forms-string (join ", " forms)]
+    ^{:key r}[:p word " - " count " - " forms-string]))
 
 (defn results-panel []
   (let [results (re-frame/subscribe [:results])]

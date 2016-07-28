@@ -24,16 +24,39 @@
      (replace "!" " ")
      (replace "?" " ")
      (replace ";" " ")
+     ;; TODO: numbers only if spaces around, not P2P
      (replace #"[,\.\(\)–\d«»%…\-]" " ")))
+
+
+;; {"слон" {:forms ["слона", "слону"]
+;;          :count 5}}
+
+(defn initial-word-form [word]
+  (case word
+        ("слон" "слона" "слону") "слон"
+        word))
+
+
+(defn process-word [results word-form]
+  (let [word (initial-word-form word-form)
+        forms (:forms (results word) [])
+        count (:count (results word) 0)
+        updated-forms (distinct (conj forms word-form))]
+    (assoc results word {:forms updated-forms
+                         :count (inc count)})))
+
+(defn count-words [words]
+  (reduce process-word {} words))
+
 
 (defn process-text [text]
   (-> text
       (lower-case)
       (clean-text)
       (split #"\s+")
-      (frequencies)
+      (count-words)
       (->> (into [])
-           (sort-by second >))))
+           (sort-by #(-> % second :count) >))))
 
 (re-frame/register-handler
  :home/text-changed
