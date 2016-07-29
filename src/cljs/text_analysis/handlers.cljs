@@ -32,6 +32,7 @@
 ;; {"слон" {:forms ["слона", "слону"]
 ;;          :count 5}}
 
+;; will be dealt by server
 (defn initial-word-form [word]
   (case word
         ("слон" "слона" "слону") "слон"
@@ -41,10 +42,19 @@
         ("благо" "блага" "благ" "благами" "благам") "благо"
         word))
 
+;; will be dealt by server
+(defn word-with-initial-form [word]
+  [word (initial-word-form word)])
 
-(defn process-word [results word-form]
-  (let [word (initial-word-form word-form)
-        forms (:forms (results word) [])
+;; (word-with-initial-form "благами")
+
+(defn all-with-initial-form [words]
+  ;; should make ajax request
+  (map word-with-initial-form words))
+
+
+(defn process-word [results [word-form word]]
+  (let [forms (:forms (results word) [])
         count (:count (results word) 0)
         updated-forms (distinct (conj forms word-form))]
     (assoc results word {:forms updated-forms
@@ -53,15 +63,17 @@
 (defn count-words [words]
   (reduce process-word {} words))
 
-
 (defn process-text [text]
   (-> text
       (lower-case)
       (clean-text)
       (split #"\s+")
+      (all-with-initial-form)
       (count-words)
       (->> (into [])
            (sort-by #(-> % second :count) >))))
+
+(process-text "слону сознание слона было как слово человека")
 
 (re-frame/register-handler
  :home/text-changed
